@@ -99,6 +99,23 @@ jobs:
           PY
           fi
 
+      # Android Lint (an optional checker) crashes during the release build with some plugins.
+      # The APK does not need it, so it is switched off for release builds.
+      - name: Disable Android lint on release
+        run: |
+          F=android/app/build.gradle.kts
+          if [ -f "$F" ]; then
+            if ! grep -q "checkReleaseBuilds" "$F"; then
+              sed -i '0,/^android {/s//android {\n    lint {\n        checkReleaseBuilds = false\n        abortOnError = false\n    }/' "$F"
+            fi
+          else
+            F=android/app/build.gradle
+            if ! grep -q "checkReleaseBuilds" "$F"; then
+              sed -i '0,/^android {/s//android {\n    lint {\n        checkReleaseBuilds false\n        abortOnError false\n    }/' "$F"
+            fi
+          fi
+          grep -n "checkReleaseBuilds" "$F"
+
       - name: Install dependencies
         run: flutter pub get
 
